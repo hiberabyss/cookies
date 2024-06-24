@@ -18,7 +18,12 @@ func contains(values []string, value string) bool {
 	return false
 }
 
-func findCookies(url *url.URL, name string, browsers []string, logger *Logger) (results []*kooky.Cookie) {
+// func findCookies(url *url.URL, name string, browsers []string, logger *Logger) (results []*kooky.Cookie) {
+func findCookies(opts *options, logger *Logger) (results []*kooky.Cookie) {
+	url := opts.url
+	name := opts.name
+	browsers := opts.browsers
+
 	logger.Printf("Looking for browsers %v", browsers)
 	logger.Printf("Looking for cookies for URL %s", url)
 	filter := currentlyAppliesToURLAndName(url, name, logger.RequireVerbosity(2))
@@ -31,6 +36,11 @@ func findCookies(url *url.URL, name string, browsers []string, logger *Logger) (
 			}
 			logger.Printf("Looking for %s cookie stores", name)
 			kooky.ConcurrentlyVisitStores(finder, func(store kooky.CookieStore) {
+				if len(opts.profile) > 0 && opts.profile != store.Profile() {
+					logger.Printf("have specified profile: %s, will skip: %s\n", opts.profile, store.Profile())
+					return
+				}
+
 				logger.Printf("Loading cookies from %v", store)
 				err := store.VisitCookies(func(cookie *kooky.Cookie, initializeValue kooky.CookieValueInitializer) error {
 					if !filter(cookie) {

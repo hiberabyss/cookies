@@ -18,6 +18,7 @@ type options struct {
 	browsers      []string
 	url           *url.URL
 	name          string
+	profile       string
 	acceptMissing bool
 	verbosity     int
 }
@@ -26,7 +27,8 @@ func main() {
 	options := parseCommandLine()
 	logger := LoggerWithVerbosity(options.verbosity)
 
-	cookies := findCookies(options.url, options.name, options.browsers, logger)
+	// cookies := findCookies(options.url, options.name, options.browsers, logger)
+	cookies := findCookies(&options, logger)
 	if len(cookies) == 0 {
 		if !options.acceptMissing {
 			os.Exit(1)
@@ -60,6 +62,7 @@ func parseCommandLine() (options options) {
 	flagSet.Usage = func() { usage(os.Stdout) }
 
 	flagSet.BoolVarP(&options.acceptMissing, "accept-missing", "a", false, "don't fail with exit status 1 when cookies aren't found")
+	flagSet.StringVarP(&options.profile, "profile", "p", "", "only get specific profile cookie")
 	flagSet.StringArrayVarP(&options.browsers, "browser", "b", []string{"chrome", "chromium", "firefox", "safari"}, "browser to try extracting a cookie from, can be repeated to try multiple browsers")
 	flagSet.CountVarP(&options.verbosity, "verbose", "v", "enables logging to stderr; specify it twice or provide `level` 2 to get per-cookie details (`-vv` or `--verbose=2`)")
 
